@@ -37,7 +37,7 @@ class Memory(nn.Module):
                                                   e_t.unsqueeze(1)))
         self.memory = M_hat_t + torch.matmul(w_t.unsqueeze(2),
                                              a_t.unsqueeze(1))
-        
+
     def content_addressing(self, k_t, beta_t, g_t, s_t, gamma_t, w_t_minus_1):
         """
         :param k_t: [batch_size, M]
@@ -64,6 +64,8 @@ class Memory(nn.Module):
         def _circular_convolution(w_g_t, s_t):
             # I didn't have torch.Tensor
             w_tilde_t = Variable(torch.zeros(self.batch_size, self.N))
+            if torch.cuda.is_available():
+                w_tilde_t = w_tilde_t.cuda()
 
             kern_size = s_t.size(1)
             # circular padding

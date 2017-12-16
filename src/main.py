@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser("NTM Copy Task")
 parser.add_argument("--model", default="lstm_ntm",
                     help="[baseline] | [lstm_ntm] | [mlp_ntm] ")
 parser.add_argument("--batch-size", default=1)
-parser.add_argument("--train-steps", default=500,
+parser.add_argument("--train-steps", default=50000,
                     help="number of steps to train")
 parser.add_argument("--print-freq", default=5)
 parser.add_argument("--lr", default=1e-4, type=float)
@@ -81,6 +81,7 @@ global_step = 0
 loss_avg = 0
 writer = utils.Logger(args.logdir)
 
+model.train()
 while global_step < args.train_steps:
     inp, target = copy_task_gen.generate_batch(batch_size=args.batch_size)
     pred = model(inp)
@@ -90,7 +91,9 @@ while global_step < args.train_steps:
     loss_avg += loss.data[0]
     loss.backward()
 
-    torch.nn.utils.clip_grad_norm(model.parameters(), args.clip)
+    for p in model.parameters():
+        p.grad.data.clamp_(max=args.clip)
+
     optimizer.step()
     global_step += 1
 
