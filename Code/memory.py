@@ -55,7 +55,7 @@ class NTMMemory(nn.Module):
         """
         Use the four stage addressing mechanism to generate the next attention weight.
         :param prev_w: previous weight. (could be from reader or writer) [batch_size, N]
-        :param controller_out: [batch_size, controller_size]
+        
         :return:
         """
 
