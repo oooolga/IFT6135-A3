@@ -60,6 +60,3 @@ class NTMMemory(nn.Module):
 		w_t_sum = torch.sum(w_t, 1)
 		w_t_sum = w_t_sum.view(self.batch_size, 1).repeat(1,self.N) + OFFSET
 		return w_t_sum
-
-
-		
