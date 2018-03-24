@@ -1,5 +1,5 @@
 from util import *
-from memoryNTM import *
+from memory import *
 
 if __name__ == '__main__':
 	N = 10
