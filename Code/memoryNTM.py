@@ -38,9 +38,10 @@ class NTMMemory(nn.Module):
 											 a_t.unsqueeze(1))
 		
 	def content_addressing(self, k_t, beta_t):
-		pdb.set_trace()
 		# beta_t = Batch x 1
 		# k_t = Batch x M
 		k_t = k_t.view(self.batch_size, 1, self.M)
-		w_c_t = F.softmax(beta_t * \
-						  F.cosine_similarity(self.memory, k_t, dim=-1), dim=1)
+		beta_t = beta_t.view(self.batch_size, 1).repeat(1,self.N)
+		K = F.cosine_similarity(self.memory, k_t, dim=-1)
+		w_c_t = F.softmax(beta_t * K, dim=1)
+		
