@@ -17,3 +17,5 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 
 use_cuda = torch.cuda.is_available()
+
+OFFSET = 1e-16
