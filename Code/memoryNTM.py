@@ -53,6 +53,8 @@ class NTMMemory(nn.Module):
 		w_g_t = g_t*w_c_t + (1-g_t)*w_t_minus_1
 
 		# TODO: to do shift
+		def _circular_convolution(w_g_t, s_t):
+			pass
 		w_tilde_t = w_t_minus_1
 
 		gamma_t = gamma_t.view(self.batch_size, 1).repeat(1,self.N)
