@@ -2,7 +2,7 @@ from util import *
 from memoryNTM import *
 
 if __name__ == '__main__':
-	N = 10
+	N = 20
 	M = 15
 	batch_size = 30
 
@@ -15,7 +15,7 @@ if __name__ == '__main__':
 	k_t = Variable(torch.Tensor(batch_size, M))
 	beta_t = Variable(torch.Tensor(batch_size))
 	g_t = Variable(torch.Tensor(batch_size))
-	s_t = Variable(torch.Tensor(batch_size, N))
+	s_t = Variable(torch.Tensor(batch_size, 3))
 	gamma_t = Variable(torch.Tensor(batch_size))
 
 	temp.reading(w_t)
