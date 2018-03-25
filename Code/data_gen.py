@@ -34,8 +34,9 @@ class CopyTaskGenerator(object):
         output = seqs.clone()
         return input, output
 
-# Testing
-import ipdb
-ipdb.set_trace()
-data_gen = CopyTaskGenerator()
-inp, out = data_gen.generate(1, 5)
+if __name__ == '__main__':
+    # Testing
+    import ipdb
+    ipdb.set_trace()
+    data_gen = CopyTaskGenerator()
+    inp, out = data_gen.generate(1, 5)
