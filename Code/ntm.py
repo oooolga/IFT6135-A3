@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from util import use_cuda
 from torch.autograd import Variable
+import torch.nn.functional as F
 import ipdb
 
 class NTMCell(nn.Module):
@@ -58,5 +59,5 @@ class NTMCell(nn.Module):
         self.prev_read = r_t
 
         out = self.out_dec(torch.cat([r_t, o_t], dim=1))
-        return out
+        return F.sigmoid(out)
 
