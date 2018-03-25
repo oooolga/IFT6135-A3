@@ -2,7 +2,8 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 import torch.nn.functional as F
-from util import use_cuda
+
+use_cuda = torch.cuda.is_available()
 
 def _split_cols(input, lengths):
     """

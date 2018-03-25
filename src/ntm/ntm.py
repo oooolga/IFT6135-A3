@@ -1,8 +1,9 @@
 import torch
 from torch import nn
-from util import use_cuda
 from torch.autograd import Variable
 import torch.nn.functional as F
+from .controller import Controller
+from .
 import ipdb
 
 class NTMCell(nn.Module):
@@ -47,7 +48,7 @@ class NTMCell(nn.Module):
             batch_size = self.prev_read.size(0)
             inp_size = self.controller.inp_size
             x_t = Variable(torch.zeros(batch_size, inp_size))
-            if use_cuda:
+            if torch.cuda.is_available():
                 x_t = x_t.cuda()
 
         o_t = self.controller(x_t, self.prev_read)

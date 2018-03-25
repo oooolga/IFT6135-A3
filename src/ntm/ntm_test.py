@@ -1,6 +1,6 @@
-from controller import LSTMController
-from heads import Reader, Writer
-from memoryNTM import NTMMemory
+from ntm.controller import LSTMController
+from ntm.heads import Reader, Writer
+from ntm.memoryNTM import NTMMemory
 from ntm import NTMCell
 from torch.autograd import Variable
 import torch

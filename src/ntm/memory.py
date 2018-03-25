@@ -7,12 +7,12 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 import pdb
-from util import OFFSET
+OFFSET = 1e-16
 
-class NTMMemory(nn.Module):
+class Memory(nn.Module):
     def __init__(self, N, M):
 
-        super(NTMMemory, self).__init__()
+        super(Memory, self).__init__()
 
         self.N = N
         self.M = M

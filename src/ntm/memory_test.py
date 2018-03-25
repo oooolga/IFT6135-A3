@@ -1,12 +1,14 @@
-from util import *
-from memoryNTM import *
+from .memory import Memory
+import torch
+from torch.autograd import Variable
+
 
 if __name__ == '__main__':
 	N = 20
 	M = 15
-	batch_size = 30
+	batch_size = 3
 
-	temp = NTMMemory(N, M)
+	temp = Memory(N, M)
 	temp.reset(batch_size)
 
 	w_t = Variable(torch.Tensor(batch_size, N))
