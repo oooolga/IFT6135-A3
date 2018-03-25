@@ -14,13 +14,16 @@ class LSTMBaseline(nn.Module):
 
 		self.rnn = nn.LSTM(self.input_size, self.hidden_size, self.num_layers)
 		self.out = nn.Linear(self.hidden_size, self.input_size)
+		self.sigmoid = nn.Sigmoid()
 
 		self.loss = nn.BCELoss()
 
 	def forward(self, inputs):
 		batch_size = inputs.size()[1]
 
+		inputs = inputs.type(torch.FloatTensor)
+
 		h_0 = c_0 = Variable(torch.zeros(1, batch_size,  self.hidden_size))
 
 		outputs, hn = self.rnn(inputs, (h_0, c_0))
-		return outputs
+		return self.sigmoid(self.out(outputs))
