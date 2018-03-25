@@ -22,7 +22,7 @@ parser.add_argument("--M", default=20)
 parser.add_argument("--N", default=128)
 parser.add_argument("--controller-size", default=100)
 
-parser.add_argument("--seq-dim", default=9, help="copy task input dim")
+parser.add_argument("--seq-dim", default=8, help="copy task input dim")
 parser.add_argument("--max-seq-len", default=20, help="copy task input length")
 args = parser.parse_args()
 use_cuda = torch.cuda.is_available()
@@ -70,6 +70,7 @@ optimizer = optim.RMSprop(
 global_step = 0
 while global_step < args.train_steps:
     inp, target = copy_task_gen.generate_batch(batch_size=args.batch_size)
+
     ipdb.set_trace()
     pred = model(inp)
 

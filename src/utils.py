@@ -28,5 +28,5 @@ class CellWrapper(nn.Module):
         out = []
         for t in range(inp.size(0)-1):
             out.append(cell.forward(None))
-        out = torch.cat(out)
+        out = torch.stack(out)
         return out
