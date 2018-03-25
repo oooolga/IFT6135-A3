@@ -7,6 +7,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 import pdb
+from util import OFFSET
 
 class NTMMemory(nn.Module):
     def __init__(self, N, M):
@@ -20,7 +21,8 @@ class NTMMemory(nn.Module):
         self.mem_init = nn.Parameter(torch.zeros(N,M))
 
     def reset(self, batch_size):
-        self.memory = self.mem_init.clone().repeat([batch_size, 1, 1])
+        self.batch_size = batch_size
+        self.memory = self.mem_init.clone().repeat(batch_size, 1, 1)
 
     def reading(self, w_t):
         # w_t = Batch x N
