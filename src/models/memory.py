@@ -18,7 +18,9 @@ class Memory(nn.Module):
         self.M = M
 
         # a learned initialized memory value N x M
+
         self.mem_init = nn.Parameter(torch.zeros(N,M))
+        nn.init.xavier_uniform(self.mem_init, 1)
 
     def reset(self, batch_size):
         self.batch_size = batch_size
