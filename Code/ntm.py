@@ -4,7 +4,7 @@ from util import use_cuda
 from torch.autograd import Variable
 
 class NTMCell(nn.Module):
-    def __init__(self, controller, memory, reader, writer):
+    def __init__(self, controller, memory, reader, writer, out_size):
         """
         :param controller: Controller object
         :param memory: NTMMomory object
@@ -16,9 +16,13 @@ class NTMCell(nn.Module):
         self.memory = memory
         self.reader = reader
         self.writer = writer
+        self.out_size = out_size
 
         # a learned bias value for previous read initialization
         self.read_init = nn.Parameter(torch.zeros(1, self.mem.M))
+
+        # output decoder
+        self.out_dec = nn.Linear(memory.M + controller.controller_size, out_size)
 
     def init_sequences(self, batch_size):
         """
@@ -35,7 +39,7 @@ class NTMCell(nn.Module):
     def forward(self, x_t=None):
         """
         :param x_t: [batch_size, inp_dim]
-        :return:
+        :return: out: [batch_size, out_size]
         """
         if x_t is None:
             batch_size = self.prev_read.size(0)
@@ -46,7 +50,11 @@ class NTMCell(nn.Module):
 
         o_t = self.controller(x_t, self.prev_read)
 
-
         #TODO: Should we perform write first or read first
+        self.writer(o_t)
         r_t = self.reader(o_t)
+        self.prev_read = r_t
+
+        out = self.out_dec(torch.cat([r_t, o_t]))
+        return out
 
