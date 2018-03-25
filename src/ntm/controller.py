@@ -25,6 +25,8 @@ class MLPController(Controller):
         self.fc1 = nn.Linear(inp_size+M, controller_size)
 
         # init fc1 here possibily
+        torch.nn.init.xavier_uniform(self.fc1.weight, gain=0.5)
+
 
 
     def forward(self, inp, prev_read):
@@ -33,7 +35,7 @@ class MLPController(Controller):
         :param prev_read: [batch_size, M]
         :return: out: [batch_size, controller_size]
         """
-        return self.fc1(torch.cat([inp, prev_read]))
+        return self.fc1(torch.cat([inp, prev_read], dim=1))
 
     def reset(self, batch_size):
         """
@@ -49,6 +51,14 @@ class LSTMController(Controller):
         super().__init__(inp_size, M, controller_size)
 
         self.lstm = nn.LSTMCell(input_size=inp_size+M, hidden_size=controller_size)
+        for p in self.lstm.parameters():
+            if p.dim() == 1:
+                nn.init.constant(p, 0)
+            else:
+                stdev = 5 / (torch.sqrt(inp_size + controller_size))
+                nn.init.uniform(p, -stdev, stdev)
+
+
         self.h_init = nn.Parameter(torch.zeros(1, controller_size))
         self.c_init = nn.Parameter(torch.zeros(1, controller_size))
 

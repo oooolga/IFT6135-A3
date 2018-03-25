@@ -2,30 +2,47 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 import torch.nn.functional as F
-from .controller import Controller
-from .
+from controller import LSTMController, MLPController
+from memory import Memory
+from heads import Reader, Writer
+
 import ipdb
 
 class NTMCell(nn.Module):
-    def __init__(self, controller, memory, reader, writer, out_size):
+    def __init__(
+            self, inp_size, M, N, out_size, controller_size=100, type='lstm'
+    ):
         """
-        :param controller: Controller object
-        :param memory: NTMMomory object
-        :param reader: Reader object
-        :param writer: Writer object
+        :param inp_size: input dimension
+        :param M: memory dimension
+        :param N: number of memory
+        :param controller_size: controller or hidden size
+        :param out_size: output size
+        :param type: "lstm" or "mlp"
         """
         super().__init__()
-        self.controller = controller
-        self.memory = memory
-        self.reader = reader
-        self.writer = writer
+        self.type = type
+        self.inp_size = inp_size
+        self.M = M
+        self.N = N
+        self.controller_size = controller_size
         self.out_size = out_size
 
+        self.memory = Memory(N,M)
+        self.reader = Reader(controller_size, self.memory)
+        self.writer = Writer(controller_size, self.memory)
+        if type == "lstm":
+            self.controller = LSTMController(inp_size, M, controller_size)
+        elif type == "mlp":
+            self.controller = MLPController(inp_size, M, controller_size)
+        else:
+            NotImplementedError
+
         # a learned bias value for previous read initialization
-        self.read_init = nn.Parameter(torch.zeros(1, memory.M))
+        self.read_init = nn.Parameter(torch.zeros(1, self.memory.M))
 
         # output decoder
-        self.out_dec = nn.Linear(memory.M + controller.controller_size, out_size)
+        self.out_dec = nn.Linear(M + controller_size, out_size)
 
     def reset(self, batch_size):
         """
