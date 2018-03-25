@@ -1,1 +1,1 @@
-from .controller import LSTMController, MLPController
+from .ntm_cell import NTMCell

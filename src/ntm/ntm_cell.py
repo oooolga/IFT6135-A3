@@ -2,9 +2,9 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 import torch.nn.functional as F
-from controller import LSTMController, MLPController
-from memory import Memory
-from heads import Reader, Writer
+from .controller import LSTMController, MLPController
+from .memory import Memory
+from .heads import Reader, Writer
 
 import ipdb
 
@@ -36,7 +36,7 @@ class NTMCell(nn.Module):
         elif type == "mlp":
             self.controller = MLPController(inp_size, M, controller_size)
         else:
-            NotImplementedError
+            raise NotImplementedError
 
         # a learned bias value for previous read initialization
         self.read_init = nn.Parameter(torch.zeros(1, self.memory.M))
@@ -79,3 +79,21 @@ class NTMCell(nn.Module):
         out = self.out_dec(torch.cat([r_t, o_t], dim=1))
         return F.sigmoid(out)
 
+if __name__ == '__main__':
+    inp_size = 9
+    M = 28
+    N = 100
+    controller_size = 100
+    out_size = 8
+    batch_size = 3
+
+
+    ntm_cell = NTMCell(inp_size, M, N, out_size, type='mlp')
+
+    ntm_cell.reset(batch_size)
+    batch_data = Variable(torch.randn(batch_size, inp_size))
+    outs = []
+    for _ in range(5):
+        outs.append(ntm_cell(batch_data))
+
+    ipdb.set_trace()
