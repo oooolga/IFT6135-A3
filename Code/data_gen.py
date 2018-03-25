@@ -2,8 +2,10 @@
 # This is the data generating script
 #####################################
 import torch
-import ipdb
+from torch.autograd import Variable
+import pdb
 from random import randint
+import numpy as np
 
 class CopyTaskGenerator(object):
     def __init__(self, max_seq_len=20, seq_dim=8):
@@ -24,19 +26,22 @@ class CopyTaskGenerator(object):
             T = randint(1, self.max_seq_len)
         assert(T <= self.max_seq_len, "Only allowed {} lenghs sampled".format(self.max_seq_len))
 
-        seqs = torch.rand(T, batch_size, self.seq_dim)
+        #seqs = torch.rand(T, batch_size, self.seq_dim)
+        seqs = np.random.randint(2, size=(T, batch_size, self.seq_dim))
+        seqs = Variable(torch.from_numpy(seqs))
         input = torch.cat(
             [
-                torch.cat([seqs, torch.zeros(T, batch_size, 1)], 2),
-                torch.cat([torch.zeros(1, batch_size, self.seq_dim), torch.ones(1, batch_size, 1)], 2)
+                torch.cat([seqs, torch.zeros(T, batch_size, 1).type_as(seqs)], 2),
+                torch.cat([torch.zeros(1, batch_size, self.seq_dim).type_as(seqs),
+                           torch.ones(1, batch_size, 1).type_as(seqs)], 2)
             ]
         )
         output = seqs.clone()
-        return input, output
+        return input.float(), output.float()
 
 if __name__ == '__main__':
     # Testing
-    import ipdb
-    ipdb.set_trace()
     data_gen = CopyTaskGenerator()
+    pdb.set_trace()
     inp, out = data_gen.generate(1, 5)
+    pdb.set_trace()
