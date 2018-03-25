@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+import numpy as np
 
 class Controller(nn.Module):
     def __init__(self, inp_size, M, controller_size=100):
@@ -55,7 +56,7 @@ class LSTMController(Controller):
             if p.dim() == 1:
                 nn.init.constant(p, 0)
             else:
-                stdev = 5 / (torch.sqrt(inp_size + controller_size))
+                stdev = 1.0 / (np.sqrt(inp_size + controller_size))
                 nn.init.uniform(p, -stdev, stdev)
 
 

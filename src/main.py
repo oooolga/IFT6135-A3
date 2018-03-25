@@ -3,15 +3,15 @@ from random import randint
 from data_gen import CopyTaskGenerator
 import ipdb
 import torch
-from LSTMBaseline import LSTMBaselineCell
-from ntm import NTMCell
+from models import LSTMBaselineCell
+from models import NTMCell
 from torch import optim
 import argparse
 import utils
 import numpy as np
 
 parser = argparse.ArgumentParser("NTM Copy Task")
-parser.add_argument("--model", default="baseline",
+parser.add_argument("--model", default="lstm_ntm",
                     help="[baseline] | [lstm_ntm] | [mlp_ntm] ")
 parser.add_argument("--batch-size", default=2)
 parser.add_argument("--train-steps", default=1000,
