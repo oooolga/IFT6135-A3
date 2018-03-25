@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 import torch.nn.functional as F
+from util import use_cuda
 
 def _split_cols(input, lengths):
     """
@@ -36,12 +37,15 @@ class Head(nn.Module):
         self.address_param_lengths = [memory.M, 1, 1, 3, 1]
 
     def reset(self, batch_size):
-        return Variable(torch.zeros(batch_size, self.memory.N))
+        if use_cuda:
+            self.prev_w = Variable(torch.ones(batch_size, self.memory.N) / self.memory.N).cuda()
+        else:
+            self.prev_w = Variable(torch.ones(batch_size, self.memory.N) / self.memory.N)
 
-    def _get_w_t(self, controller_out, prev_w):
+
+    def _get_w_t(self, controller_out):
         """
         :param controller_out: [bsz, controller_size]
-        :param prev_w: [bsz, N]
         :param w_t: [bsz, N]
         """
         k, beta, g, s, gamma = _split_cols(
@@ -53,7 +57,7 @@ class Head(nn.Module):
         s = F.softmax(s, dim=-1)
         gamma = F.relu(gamma) + 1
 
-        w_t = self.memory.content_address(k, beta, g, prev_w, s, gamma)
+        w_t = self.memory.content_address(k, beta, g, s, gamma, self.prev_w)
         return w_t
 
 
@@ -62,14 +66,15 @@ class Reader(Head):
     def __init__(self, controller_size, memory):
         super().__init__(controller_size, memory)
 
-    def forward(self, controller_out, prev_w):
+    def forward(self, controller_out):
         """
         :param controller_out: [bsz, controller_size]
-        :param prev_w: [bsz, N]
-        :return: r_t [bsz, M], w_t [bsz, N]
+        :return: r_t [bsz, M]
         """
-        w_t = self._get_w_t(controller_out, prev_w)
-        return self.memory.reading(w_t), w_t
+        w_t = self._get_w_t(controller_out)
+        # update state
+        self.prev_w = w_t
+        return self.memory.reading(w_t)
 
 
 class Writer(Head):
@@ -79,17 +84,17 @@ class Writer(Head):
         nn.init.xavier_uniform(self.writer_decoder.weight, gain=1.0)
         self.writer_decoder.bias.data.zero_()
 
-    def forward(self, controller_out, prev_w):
+    def forward(self, controller_out):
         """
         change the memory
         :param controller_out: [bsz, controller_size]
-        :param prev_w: [bsz, N]
-        :return: w_t [bsz, N]
         """
-        w_t = self._get_w_t(controller_out, prev_w)
+        w_t = self._get_w_t(controller_out)
+        # update state
+        self.prev_w = w_t
         e_t, a_t = _split_cols(
             self.writer_decoder(controller_out),
             [self.memory.M, self.memory.M]
         )
+        e_t = F.sigmoid(e_t)
         self.memory.writing(w_t, e_t, a_t)
-        return w_t

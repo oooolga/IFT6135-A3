@@ -11,20 +11,18 @@ from util import *
 import pdb
 
 class NTMMemory(nn.Module):
-    def __init__(self, N, M, batch_size):
+    def __init__(self, N, M):
 
         super(NTMMemory, self).__init__()
 
         self.N = N
         self.M = M
-        self.batch_size = batch_size
 
-        memory = Variable(torch.Tensor(N, M))
-        torch.nn.init.constant(memory, 0)
+        # a learned initialized memory value N x M
+        self.mem_init = nn.Parameter(torch.zeros(N,M))
 
-        # M = Batch x N x M
-        self.memory = memory.repeat(batch_size, 1, 1)
-
+    def reset(self, batch_size):
+        self.memory = self.mem_init.clone().repeat([batch_size, 1, 1])
 
     def reading(self, w_t):
         # w_t = Batch x N
@@ -32,14 +30,13 @@ class NTMMemory(nn.Module):
         return r_t
 
     def writing(self, w_t, e_t, a_t):
-        
-        #prev_memory = self.memory.clone()
+
         M_hat_t = self.memory * (1 - torch.matmul(w_t.unsqueeze(2),
                                                   e_t.unsqueeze(1)))
         self.memory = M_hat_t + torch.matmul(w_t.unsqueeze(2),
                                              a_t.unsqueeze(1))
         
-    def content_addressing(self, k_t, beta_t, g_t, w_t_minus_1, s_t, gamma_t):
+    def content_addressing(self, k_t, beta_t, g_t, s_t, gamma_t, w_t_minus_1):
         # beta_t = Batch x 1
         # k_t = Batch x M
         k_t = k_t.view(self.batch_size, 1, self.M)
