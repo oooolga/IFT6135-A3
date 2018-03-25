@@ -6,7 +6,8 @@ if __name__ == '__main__':
 	M = 15
 	batch_size = 30
 
-	temp = NTMMemory(N, M, batch_size)
+	temp = NTMMemory(N, M)
+	temp.reset(batch_size)
 
 	w_t = Variable(torch.Tensor(batch_size, N))
 	e_t = Variable(torch.Tensor(batch_size, M))
@@ -19,4 +20,4 @@ if __name__ == '__main__':
 
 	temp.reading(w_t)
 	temp.writing(w_t, e_t, a_t)
-	temp.content_addressing(k_t, beta_t, g_t, w_t, s_t, gamma_t)
+	temp.content_addressing(k_t, beta_t, g_t, s_t, gamma_t, w_t)
