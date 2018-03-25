@@ -54,8 +54,27 @@ class NTMMemory(nn.Module):
 
 		# TODO: to do shift
 		def _circular_convolution(w_g_t, s_t):
-			pass
-		w_tilde_t = w_t_minus_1
+
+			w_tilde_t = Variable(torch.Tensor(self.batch_size, self.N))
+
+			kern_size = s_t.size(1)
+			# circular padding
+			w_g_t_padded = w_g_t.clone()
+			w_g_t_padded = w_g_t_padded.repeat(1,3)
+			w_g_t_padded = w_g_t_padded[:,
+										self.N-(kern_size//2):-(self.N-(kern_size//2))]
+			if kern_size % 2 == 0:
+				w_g_t_padded = w_g_t_padded[:, :-1]
+
+			w_g_t_padded = w_g_t_padded.unsqueeze(1)
+
+			#w_tilde_t = F.conv1d(w_g_t_padded, s)
+			for batch_idx in range(self.batch_size):
+				w_tilde_t[batch_idx] = F.conv1d(w_g_t_padded[batch_idx].view(1,1,-1),
+												s_t[batch_idx].view(1,1,-1)).view(-1)
+			return w_tilde_t
+
+		w_tilde_t = _circular_convolution(w_g_t, s_t)
 
 		gamma_t = gamma_t.view(self.batch_size, 1).repeat(1,self.N)
 		w_t = w_tilde_t ** gamma_t
