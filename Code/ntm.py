@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from util import use_cuda
 from torch.autograd import Variable
+import ipdb
 
 class NTMCell(nn.Module):
     def __init__(self, controller, memory, reader, writer, out_size):
@@ -19,16 +20,16 @@ class NTMCell(nn.Module):
         self.out_size = out_size
 
         # a learned bias value for previous read initialization
-        self.read_init = nn.Parameter(torch.zeros(1, self.mem.M))
+        self.read_init = nn.Parameter(torch.zeros(1, memory.M))
 
         # output decoder
         self.out_dec = nn.Linear(memory.M + controller.controller_size, out_size)
 
-    def init_sequences(self, batch_size):
+    def reset(self, batch_size):
         """
         reset inner states for a new batch
         """
-        self.ctrl.reset(batch_size)
+        self.controller.reset(batch_size)
         self.memory.reset(batch_size)
         self.reader.reset(batch_size)
         self.writer.reset(batch_size)
@@ -51,10 +52,11 @@ class NTMCell(nn.Module):
         o_t = self.controller(x_t, self.prev_read)
 
         #TODO: Should we perform write first or read first
+
         self.writer(o_t)
         r_t = self.reader(o_t)
         self.prev_read = r_t
 
-        out = self.out_dec(torch.cat([r_t, o_t]))
+        out = self.out_dec(torch.cat([r_t, o_t], dim=1))
         return out
 

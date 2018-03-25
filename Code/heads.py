@@ -27,6 +27,7 @@ def _sigmoid(x):
 class Head(nn.Module):
     def __init__(self, controller_size, memory):
         super(Head, self).__init__()
+        self.controller_size = controller_size
         # NTMMemory object
         self.memory = memory
 
@@ -52,12 +53,13 @@ class Head(nn.Module):
             self.address_param_decoder(controller_out),
             self.address_param_lengths
         )
+        k = k.contiguous()
         beta = F.softplus(beta)
         g = F.sigmoid(g)
         s = F.softmax(s, dim=-1)
         gamma = F.relu(gamma) + 1
 
-        w_t = self.memory.content_address(k, beta, g, s, gamma, self.prev_w)
+        w_t = self.memory.content_addressing(k, beta, g, s, gamma, self.prev_w)
         return w_t
 
 

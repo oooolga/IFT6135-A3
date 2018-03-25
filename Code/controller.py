@@ -49,16 +49,16 @@ class LSTMController(Controller):
         super().__init__(inp_size, M, controller_size)
 
         self.lstm = nn.LSTMCell(input_size=inp_size+M, hidden_size=controller_size)
-        self.h_init = nn.Parameter(torch.zeros(1, 1, controller_size))
-        self.c_init = nn.Parameter(torch.zeros(1, 1, controller_size))
+        self.h_init = nn.Parameter(torch.zeros(1, controller_size))
+        self.c_init = nn.Parameter(torch.zeros(1, controller_size))
 
     def reset(self, batch_size):
         """
         reset current_state to something new
         """
         self.state = (
-            self.h_init.clone().repeat(1, batch_size, 1),
-            self.c_init.clone().repeat(1, batch_size, 1)
+            self.h_init.clone().repeat(batch_size, 1),
+            self.c_init.clone().repeat(batch_size, 1)
         )
 
     def forward(self, inp, prev_read):
@@ -67,7 +67,7 @@ class LSTMController(Controller):
         :param prev_read: [batch_size, M]
         :return: out: [batch_size, controller_size]
         """
-        self.state = self.lstm(torch.cat([inp, prev_read]), self.state)
+        self.state = self.lstm(torch.cat([inp, prev_read], 1), self.state)
         return self.state[0]
 
 
