@@ -39,10 +39,12 @@ class NTMCell(nn.Module):
             raise NotImplementedError
 
         # a learned bias value for previous read initialization
-        self.read_init = nn.Parameter(torch.zeros(1, self.memory.M))
+        self.read_init = nn.Parameter(torch.randn(1, self.memory.M))
 
         # output decoder
         self.out_dec = nn.Linear(M + controller_size, out_size)
+        nn.init.xavier_uniform(self.out_dec.weight, gain=1)
+        self.out_dec.bias.data.zero_()
 
     def reset(self, batch_size):
         """
@@ -62,7 +64,6 @@ class NTMCell(nn.Module):
         :return: out: [batch_size, out_size]
         """
 
-        ipdb.set_trace()
         if x_t is None:
             batch_size = self.prev_read.size(0)
             inp_size = self.controller.inp_size

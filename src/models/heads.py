@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 import torch.nn.functional as F
-
+import ipdb
 use_cuda = torch.cuda.is_available()
 
 def _split_cols(input, lengths):
@@ -34,7 +34,7 @@ class Head(nn.Module):
 
         # decode addressing argument
         self.address_param_decoder = nn.Linear(controller_size, memory.M + 1 + 1 + 3 + 1)
-        nn.init.xavier_uniform(self.address_param_decoder.weight, gain=1.0)
+        nn.init.xavier_uniform(self.address_param_decoder.weight)
         self.address_param_decoder.bias.data.zero_()
         self.address_param_lengths = [memory.M, 1, 1, 3, 1]
 
@@ -74,6 +74,7 @@ class Reader(Head):
         :param controller_out: [bsz, controller_size]
         :return: r_t [bsz, M]
         """
+
         w_t = self._get_w_t(controller_out)
         # update state
         self.prev_w = w_t
@@ -84,14 +85,16 @@ class Writer(Head):
     def __init__(self, controller_size, memory):
         super().__init__(controller_size, memory)
         self.writer_decoder = nn.Linear(self.controller_size, 2 * self.memory.M)
-        nn.init.xavier_uniform(self.writer_decoder.weight, gain=1.0)
+        nn.init.xavier_uniform(self.writer_decoder.weight)
         self.writer_decoder.bias.data.zero_()
+
 
     def forward(self, controller_out):
         """
         change the memory
         :param controller_out: [bsz, controller_size]
         """
+
         w_t = self._get_w_t(controller_out)
         # update state
         self.prev_w = w_t

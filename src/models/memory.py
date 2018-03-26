@@ -39,8 +39,18 @@ class Memory(nn.Module):
                                              a_t.unsqueeze(1))
         
     def content_addressing(self, k_t, beta_t, g_t, s_t, gamma_t, w_t_minus_1):
-        # beta_t = Batch x 1
-        # k_t = Batch x M
+        """
+        :param k_t: [batch_size, M]
+        :param beta_t: [batch_size, 1]
+        :param g_t: [batch_size, 1]
+        :param s_t: [batch_size, 3]
+        :param gamma_t: a number
+        :param w_t_minus_1: [batch_size, N]
+        :return:
+        """
+        #import ipdb
+        #ipdb.set_trace()
+
         k_t = k_t.view(self.batch_size, 1, self.M)
         beta_t = beta_t.view(self.batch_size, 1).repeat(1,self.N)
         K = F.cosine_similarity(self.memory+ OFFSET, k_t+ OFFSET, dim=-1)
@@ -78,7 +88,7 @@ class Memory(nn.Module):
         w_t = w_tilde_t ** gamma_t
         w_t_sum = torch.sum(w_t, 1)
         w_t_sum = w_t_sum.view(self.batch_size, 1).repeat(1,self.N) + OFFSET
-        return w_t_sum
+        return w_t / w_t_sum
 
 
 if __name__ == '__main__':
