@@ -14,12 +14,14 @@ import numpy as np
 parser = argparse.ArgumentParser("NTM Copy Task")
 parser.add_argument("--model", default="lstm_ntm",
                     help="[baseline] | [lstm_ntm] | [mlp_ntm] ")
-parser.add_argument("--batch-size", default=10)
-parser.add_argument("--train-steps", default=50,
+parser.add_argument("--batch-size", default=1)
+parser.add_argument("--train-steps", default=500,
                     help="number of steps to train")
 parser.add_argument("--print-freq", default=5)
-parser.add_argument("--lr", default=1e-5)
-parser.add_argument("--clip", default=0.25, type=float,
+parser.add_argument("--lr", default=1e-4, type=float)
+parser.add_argument("--momentum", default=0.9, type=float)
+parser.add_argument("--alpha", default=0.95, type=float)
+parser.add_argument("--clip", default=10, type=float,
                     help="gradient clipping")
 
 parser.add_argument("--M", default=20)
@@ -70,8 +72,8 @@ print("{} has {} parameters".format(
 ))
 
 optimizer = optim.RMSprop(
-    model.parameters(), momentum=0.9,
-    alpha=0.95, lr=args.lr
+    model.parameters(), momentum=args.momentum,
+    lr=args.lr, alpha=args.alpha
 )
 
 criterion = torch.nn.BCELoss()
