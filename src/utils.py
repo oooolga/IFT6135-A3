@@ -203,7 +203,7 @@ def load_checkpoint(model_name, use_cuda):
         raise FileNotFoundError
     return model, optimizer, args, checkpoint['global_step']
 
-def plot_visualize_head(model, head_path, attn_path):
+def plot_visualize_head(model, inp, tgt, in_tgt_path, head_path, attn_path):
     #rescale
     write_head, read_head = model.write_head, model.read_head
     max_write, max_read = np.max(write_head), np.max(read_head)
@@ -212,7 +212,20 @@ def plot_visualize_head(model, head_path, attn_path):
     write_head = (write_head-min_write)/scale_write
 
     heads = {'write':write_head, 'read':read_head}
-    attentions = {'write':model.write_w, 'read':model.read_w}    
+    attentions = {'write':model.write_w, 'read':model.read_w} 
+
+    f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+
+    im = ax1.imshow(inp, vmin=0, vmax=1, interpolation='nearest', cmap='gray')
+    ax1.set_xlabel('inputs')
+
+    im = ax2.imshow(tgt, vmin=0, vmax=1, interpolation='nearest', cmap='gray')
+    ax2.set_xlabel('outputs')
+    plt.title('inputs and outputs')
+    plt.savefig(in_tgt_path)
+    plt.clf()
+    print('Image {} is saved.'.format(in_tgt_path))
+
 
     f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
 
@@ -221,7 +234,7 @@ def plot_visualize_head(model, head_path, attn_path):
 
     im = ax2.imshow(heads['read'], vmin=0, vmax=1, interpolation='nearest')
     ax2.set_ylabel('reads')
-    plt.set_title('the vectors add to/read from memory')
+    plt.title('the vectors add to/read from memory')
     plt.savefig(head_path)
     plt.clf()
     print('Image {} is saved.'.format(head_path))
@@ -230,10 +243,11 @@ def plot_visualize_head(model, head_path, attn_path):
 
     im = ax1.imshow(attentions['write'], vmin=0, vmax=1, interpolation='nearest', cmap='gray')
     ax1.set_ylabel('location')
-    ax1.set_ylabel('time')
+    ax1.set_xlabel('time')
 
     im = ax2.imshow(attentions['read'], vmin=0, vmax=1, interpolation='nearest', cmap='gray')
-    plt.set_title('read/write weighting')
+    ax2.set_xlabel('time')
+    plt.title('read/write weighting')
     plt.savefig(attn_path)
     plt.clf()
     print('Image {} is saved.'.format(attn_path))

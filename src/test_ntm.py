@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 use_cuda = torch.cuda.is_available()
 
 parser = argparse.ArgumentParser("Copy Task Test")
-parser.add_argument('--lstm-model', type=str, default='./saved_models/lstm_20000.pt',
+parser.add_argument('--lstm-model', type=str, default='./saved_models/lstm_50000.pt',
                     help='name of the lstm model to load')
 parser.add_argument('--lstm-ntm-model', type=str, default='./saved_models/lstm_ntm_2500.pt',
                     help='name of the lstm-ntm model to load')

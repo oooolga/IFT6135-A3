@@ -17,6 +17,7 @@ parser.add_argument('--model-name', type=str, default='./saved_models/lstmntm_32
                     help='name of the model to load')
 parser.add_argument('--plot-dir', type=str, default='./plots',
                     help='directory for plots')
+parser.add_argument('--in-out-name', type=str, default='in_out_visualization')
 parser.add_argument('--head-name', type=str, default='head_visualization')
 parser.add_argument('--attn-name', type=str, default='attn_visualization')
 org_args = parser.parse_args()
@@ -36,5 +37,13 @@ model.eval()
 inp, target = copy_task_gen.generate_batch(1, 10)
 pred = model(inp)
 
-utils.plot_visualize_head(model, os.path.join(org_args.plot_dir, org_args.head_name+'.png'),
+inp = inp.cpu().squeeze(1).data.numpy().swapaxes(0,1)
+inp = np.concatenate((inp,np.zeros((9,10))), 1)
+target = target.cpu().squeeze(1).data.numpy().swapaxes(0,1)
+target = np.concatenate((np.zeros((8,11)), target), 1)
+target = np.concatenate((target, np.zeros((1,21))), 0)
+
+utils.plot_visualize_head(model, inp, target,
+						  os.path.join(org_args.plot_dir, org_args.in_out_name+'.png'),
+						  os.path.join(org_args.plot_dir, org_args.head_name+'.png'),
 						  os.path.join(org_args.plot_dir, org_args.attn_name+'.png'))
