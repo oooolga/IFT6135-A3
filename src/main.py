@@ -9,7 +9,8 @@ from torch import optim
 import argparse, os
 import utils
 import numpy as np
-import math
+import os
+
 
 
 parser = argparse.ArgumentParser("NTM Copy Task")
@@ -40,6 +41,10 @@ parser.add_argument('--model_prefix', default='model_', type=str,
                     help='output model name\'s prefix')
 args = parser.parse_args()
 use_cuda = torch.cuda.is_available()
+
+if os.path.isdir(args.logdir):
+    print("{} exists!".format(args.logdir))
+    exit(0)
 ##########################END OF ARGS###############################
 
 # Copy Task
@@ -89,6 +94,15 @@ criterion = torch.nn.BCELoss()
 global_step = 0
 loss_avg = 0
 writer = utils.Logger(args.logdir)
+
+# save heper params
+hparams = []
+args_dict = vars(args)
+for key in args_dict.keys():
+    hparams.append("{}: {}\n".format(key, args_dict[key]))
+with open(os.path.join(args.logdir, "hparam.txt"), "w") as f:
+    f.writelines(hparams)
+
 
 model.train()
 while global_step < args.train_steps:
