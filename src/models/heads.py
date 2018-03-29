@@ -75,10 +75,10 @@ class Reader(Head):
         :return: r_t [bsz, M]
         """
 
-        w_t = self._get_w_t(controller_out)
+        self.w_t = self._get_w_t(controller_out)
         # update state
-        self.prev_w = w_t
-        return self.memory.reading(w_t)
+        self.prev_w = self.w_t
+        return self.memory.reading(self.w_t)
 
 
 class Writer(Head):
@@ -95,12 +95,12 @@ class Writer(Head):
         :param controller_out: [bsz, controller_size]
         """
 
-        w_t = self._get_w_t(controller_out)
+        self.w_t = self._get_w_t(controller_out)
         # update state
-        self.prev_w = w_t
-        e_t, a_t = _split_cols(
+        self.prev_w = self.w_t
+        e_t, self.a_t = _split_cols(
             self.writer_decoder(controller_out),
             [self.memory.M, self.memory.M]
         )
         e_t = F.sigmoid(e_t)
-        self.memory.writing(w_t, e_t, a_t)
+        self.memory.writing(self.w_t, e_t, self.a_t)

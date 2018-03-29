@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import ipdb
+import ipdb, pdb
 import os
 import tensorflow as tf
 import numpy as np
@@ -13,6 +13,10 @@ try:
 except ImportError:
     from io import BytesIO         # Python 3.x
 
+import matplotlib.pyplot as plt
+import plotly.plotly as py
+import plotly.tools as tls
+
 class CellWrapper(nn.Module):
     """
     A wrapper for single cell to handle input output for copy task
@@ -20,6 +24,11 @@ class CellWrapper(nn.Module):
     def __init__(self, cell):
         super().__init__()
         self.cell = cell
+        self.R = None
+        self.plot_weight_flag = False
+
+    def set_weight_plot_flag(self, flag):
+        self.plot_weight_flag = flag
 
     def forward(self, inp):
         """
@@ -30,16 +39,33 @@ class CellWrapper(nn.Module):
         cell = self.cell
         cell.reset(inp.size(1))
 
+        if self.plot_weight_flag:
+            self.write_w = np.empty((0, cell.N))
+            self.read_w = np.empty((0, cell.N))
+            self.read_head = np.empty((0, cell.M))
+            self.write_head = np.empty((0, cell.M))
+
         # read in all input first
         # no need to record output. Just update memory
         for t in range(inp.size(0)):
             cell.forward(inp[t])
+            if self.plot_weight_flag:
+                write_w = cell.writer.prev_w.cpu().data.numpy()
+                write_head = cell.writer.a_t.cpu().data.numpy()
+                self.write_w = np.concatenate((self.write_w, write_w))
+                self.write_head = np.concatenate((self.write_head, write_head))
 
         # start outputting (no input)
         # read from memory and start copying
         out = []
         for t in range(inp.size(0)-1):
             out.append(cell.forward(None))
+            if self.plot_weight_flag:
+                read_w = cell.reader.prev_w.cpu().data.numpy()
+                read_head = cell.r_t.cpu().data.numpy()
+                self.read_w = np.concatenate((self.read_w, read_w))
+                self.read_head = np.concatenate((self.read_head, read_head))
+
         out = torch.stack(out)
         return out
 
@@ -156,3 +182,14 @@ def load_checkpoint(model_name, use_cuda):
         raise FileNotFoundError
     return model, optimizer, args, checkpoint['global_step']
 
+def plot_visualize_head(model):
+    #rescale
+    write_head, read_head = model.write_head, model.read_head
+    max_write, max_read = np.max(write_head), np.max(read_head)
+    min_write, min_read = np.min(write_head), np.min(read_head)
+    scale_write, scale_read = np.abs(max_write-min_write), np.abs(max_read-min_read)
+    write_head = (write_head-min_write)/scale_write
+
+    plt.figure(1)
+    plt.subplot(221)
+    plt.plot()
