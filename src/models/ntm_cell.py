@@ -76,8 +76,8 @@ class NTMCell(nn.Module):
         #TODO: Should we perform write first or read first
 
         self.writer(o_t)
-        r_t = self.reader(o_t)
-        self.prev_read = r_t
+        self.r_t = self.reader(o_t)
+        self.prev_read = self.r_t
 
-        out = self.out_dec(torch.cat([r_t, o_t], dim=1))
+        out = self.out_dec(torch.cat([self.r_t, o_t], dim=1))
         return F.sigmoid(out)

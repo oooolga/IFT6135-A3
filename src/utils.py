@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import ipdb
+import ipdb, pdb
 import os
 import tensorflow as tf
 import numpy as np
@@ -13,6 +13,13 @@ try:
 except ImportError:
     from io import BytesIO         # Python 3.x
 
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+import plotly.plotly as py
+import plotly.tools as tls
+from mpl_toolkits.axes_grid1 import AxesGrid
+
 class CellWrapper(nn.Module):
     """
     A wrapper for single cell to handle input output for copy task
@@ -20,6 +27,11 @@ class CellWrapper(nn.Module):
     def __init__(self, cell):
         super().__init__()
         self.cell = cell
+        self.R = None
+        self.plot_weight_flag = False
+
+    def set_weight_plot_flag(self, flag):
+        self.plot_weight_flag = flag
 
     def forward(self, inp):
         """
@@ -30,17 +42,51 @@ class CellWrapper(nn.Module):
         cell = self.cell
         cell.reset(inp.size(1))
 
+        if self.plot_weight_flag:
+            self.write_w = np.empty((0, cell.N))
+            self.read_w = np.empty((0, cell.N))
+            self.read_head = np.empty((0, cell.M))
+            self.write_head = np.empty((0, cell.M))
+
         # read in all input first
         # no need to record output. Just update memory
         for t in range(inp.size(0)):
             cell.forward(inp[t])
+            if self.plot_weight_flag:
+                write_w = cell.writer.prev_w.cpu().data.numpy()
+                write_head = cell.writer.a_t.cpu().data.numpy()
+                self.write_w = np.concatenate((self.write_w, write_w))
+                self.write_head = np.concatenate((self.write_head, write_head))
+
+                read_w = cell.reader.prev_w.cpu().data.numpy()
+                read_head = cell.r_t.cpu().data.numpy()
+                self.read_w = np.concatenate((self.read_w, read_w))
+                self.read_head = np.concatenate((self.read_head, read_head))
 
         # start outputting (no input)
         # read from memory and start copying
         out = []
         for t in range(inp.size(0)-1):
             out.append(cell.forward(None))
+            if self.plot_weight_flag:
+                write_w = cell.writer.prev_w.cpu().data.numpy()
+                write_head = cell.writer.a_t.cpu().data.numpy()
+                self.write_w = np.concatenate((self.write_w, write_w))
+                self.write_head = np.concatenate((self.write_head, write_head))
+
+                read_w = cell.reader.prev_w.cpu().data.numpy()
+                read_head = cell.r_t.cpu().data.numpy()
+                self.read_w = np.concatenate((self.read_w, read_w))
+                self.read_head = np.concatenate((self.read_head, read_head))
+
         out = torch.stack(out)
+
+        if self.plot_weight_flag:
+            self.write_w = np.swapaxes(self.write_w,0,1)
+            self.read_w = np.swapaxes(self.read_w,0,1)
+            self.read_head = np.swapaxes(self.read_head,0,1)
+            self.write_head = np.swapaxes(self.write_head,0,1)
+
         return out
 
 class Logger(object):
@@ -153,6 +199,41 @@ def load_checkpoint(model_name, use_cuda):
         optimizer.load_state_dict(checkpoint['optimizer'])
         print('Finished loading model and optimizer from {}'.format(model_name))
     else:
+        print('File {} not found.'.format(model_name))
         raise FileNotFoundError
     return model, optimizer, args, checkpoint['global_step']
 
+def plot_visualize_head(model, head_path, attn_path):
+    #rescale
+    write_head, read_head = model.write_head, model.read_head
+    max_write, max_read = np.max(write_head), np.max(read_head)
+    min_write, min_read = np.min(write_head), np.min(read_head)
+    scale_write, scale_read = np.abs(max_write-min_write), np.abs(max_read-min_read)
+    write_head = (write_head-min_write)/scale_write
+
+    heads = {'write':write_head, 'read':read_head}
+    attentions = {'write':model.write_w, 'read':model.read_w}    
+
+    f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+
+    im = ax1.imshow(heads['write'], vmin=0, vmax=1, interpolation='nearest')
+    ax1.set_ylabel('adds')
+
+    im = ax2.imshow(heads['read'], vmin=0, vmax=1, interpolation='nearest')
+    ax2.set_ylabel('reads')
+    plt.set_title('the vectors add to/read from memory')
+    plt.savefig(head_path)
+    plt.clf()
+    print('Image {} is saved.'.format(head_path))
+
+    f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+
+    im = ax1.imshow(attentions['write'], vmin=0, vmax=1, interpolation='nearest', cmap='gray')
+    ax1.set_ylabel('location')
+    ax1.set_ylabel('time')
+
+    im = ax2.imshow(attentions['read'], vmin=0, vmax=1, interpolation='nearest', cmap='gray')
+    plt.set_title('read/write weighting')
+    plt.savefig(attn_path)
+    plt.clf()
+    print('Image {} is saved.'.format(attn_path))

@@ -13,11 +13,11 @@ import matplotlib.pyplot as plt
 use_cuda = torch.cuda.is_available()
 
 parser = argparse.ArgumentParser("Copy Task Test")
-parser.add_argument('--lstm-model', type=str,
+parser.add_argument('--lstm-model', type=str, default='./saved_models/lstm_20000.pt',
                     help='name of the lstm model to load')
-parser.add_argument('--lstm-ntm-model', type=str,
+parser.add_argument('--lstm-ntm-model', type=str, default='./saved_models/lstm_ntm_2500.pt',
                     help='name of the lstm-ntm model to load')
-parser.add_argument('--mlp-ntm-model', type=str,
+parser.add_argument('--mlp-ntm-model', type=str, default='./saved_models/mlp_ntm_500.pt',
                     help='name of the mlp-ntm model to load')
 parser.add_argument('--plot-dir', type=str, default='./plots',
                     help='directory for plots')
@@ -28,9 +28,9 @@ lstm_model, _, lstm_args, _ = utils.load_checkpoint(org_args.lstm_model, use_cud
 lstm_ntm_model, _, lstmn_ntm_args, _ = utils.load_checkpoint(org_args.lstm_ntm_model, use_cuda)
 mlp_ntm_model, _, mplp_ntm_args, _ = utils.load_checkpoint(org_args.mlp_ntm_model, use_cuda)
 
-models = {'lstm': {'model':lstm_model, 'losses':[], 'color':'ro'},
-		  'lstm-ntm': {'model':lstm_ntm_model, 'losses':[], 'color':'bs'},
-		  'mlp-ntm':{'model':mlp_ntm_model, 'losses':[], 'color':'g^'}}
+models = {'lstm': {'model':lstm_model, 'losses':[], 'color':'ro-'},
+		  'lstm-ntm': {'model':lstm_ntm_model, 'losses':[], 'color':'bs-'},
+		  'mlp-ntm':{'model':mlp_ntm_model, 'losses':[], 'color':'g^-'}}
 
 
 if not os.path.exists(org_args.plot_dir):
@@ -61,6 +61,9 @@ plt.xlabel('T')
 plt.ylabel('avg loss')
 
 plt.title('average loss vs. T')
+plt.legend(loc=4)
 plt.savefig(os.path.join(org_args.plot_dir, org_args.plot_name+'.png'))
 plt.clf()
+
+print('Image saved to {}'.format(os.path.join(org_args.plot_dir, org_args.plot_name+'.png')))
 
