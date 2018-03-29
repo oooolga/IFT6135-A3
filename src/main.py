@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser("NTM Copy Task")
 parser.add_argument("--model", default="baseline",
                     help="[baseline] | [lstm_ntm] | [mlp_ntm] ")
 parser.add_argument("--batch-size", default=5)
-parser.add_argument("--train-steps", default=50000,
+parser.add_argument("--train-steps", default=50000, type=int,
                     help="number of train steps")
 parser.add_argument("--print-freq", default=20)
 parser.add_argument("--save-freq", default=None, type=int)
