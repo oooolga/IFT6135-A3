@@ -13,9 +13,12 @@ try:
 except ImportError:
     from io import BytesIO         # Python 3.x
 
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import plotly.plotly as py
 import plotly.tools as tls
+from mpl_toolkits.axes_grid1 import AxesGrid
 
 class CellWrapper(nn.Module):
     """
@@ -182,7 +185,7 @@ def load_checkpoint(model_name, use_cuda):
         raise FileNotFoundError
     return model, optimizer, args, checkpoint['global_step']
 
-def plot_visualize_head(model):
+def plot_visualize_head(model, im_path):
     #rescale
     write_head, read_head = model.write_head, model.read_head
     max_write, max_read = np.max(write_head), np.max(read_head)
@@ -190,6 +193,26 @@ def plot_visualize_head(model):
     scale_write, scale_read = np.abs(max_write-min_write), np.abs(max_read-min_read)
     write_head = (write_head-min_write)/scale_write
 
-    plt.figure(1)
-    plt.subplot(221)
-    plt.plot()
+    heads = [write_head, read_head]
+
+    fig = plt.figure()
+    grid = AxesGrid(fig, 111,
+                nrows_ncols=(1, 2),
+                axes_pad=0.1,
+                share_all=True,
+                label_mode="L",
+                cbar_location="right",
+                cbar_mode="single",
+                )
+
+    for val, ax in zip(heads, grid):
+        im = ax.imshow(val, vmin=0, vmax=1, interpolation='nearest')
+
+    grid.cbar_axes[0].colorbar(im)
+
+    for cax in grid.cbar_axes:
+        cax.toggle_label(False)
+
+    plt.savefig(im_path)
+    plt.clf()
+    print('Image {} is saved.'.format(im_path))

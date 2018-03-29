@@ -17,7 +17,7 @@ parser.add_argument('--model-name', type=str, default='./saved_models/lstm_ntm_2
                     help='name of the model to load')
 parser.add_argument('--plot-dir', type=str, default='./plots',
                     help='directory for plots')
-parser.add_argument('--plot-name', type=str, default='avgloss_vs_t')
+parser.add_argument('--plot-name', type=str, default='head_visualization')
 org_args = parser.parse_args()
 
 model, _, args, _ = utils.load_checkpoint(org_args.model_name, use_cuda)
@@ -35,4 +35,4 @@ model.eval()
 inp, target = copy_task_gen.generate_batch(1, 10)
 pred = model(inp)
 
-pdb.set_trace()
+utils.plot_visualize_head(model, os.path.join(org_args.plot_dir, org_args.plot_name+'.png'))
