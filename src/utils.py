@@ -100,3 +100,7 @@ class Logger(object):
         summary = tf.Summary(value=[tf.Summary.Value(tag=tag, histo=hist)])
         self.writer.add_summary(summary, step)
         self.writer.flush()
+
+def save_checkpoints(state, model_name):
+    torch.save(state, model_name)
+    print('Finished saving model: {}'.format(model_name))
