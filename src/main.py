@@ -11,8 +11,6 @@ import utils
 import numpy as np
 import os
 
-
-
 parser = argparse.ArgumentParser("NTM Copy Task")
 parser.add_argument("--model", default="baseline",
                     help="[baseline] | [lstm_ntm] | [mlp_ntm] ")
@@ -35,9 +33,9 @@ parser.add_argument("--seq-dim", default=8, help="copy task input dim")
 parser.add_argument("--max-seq-len", default=20, help="copy task input length")
 
 parser.add_argument("--logdir", default="./logs", type=str, help="output log for plots")
-parser.add_argument("--model_dir", default="./saved_models", type=str,
+parser.add_argument("--model-dir", default="./saved_models", type=str,
                     help="directory for saved models")
-parser.add_argument('--model_prefix', default='model_', type=str,
+parser.add_argument('--model-prefix', default='model_', type=str,
                     help='output model name\'s prefix')
 args = parser.parse_args()
 use_cuda = torch.cuda.is_available()
@@ -131,6 +129,6 @@ while global_step < args.train_steps:
             'args': args,
             'state_dict': model.state_dict(),
             'optimizer': optimizer.state_dict()
-            }, os.path.join(args.model_dir, args.model_prefix+str(global_step)))
+            }, os.path.join(args.model_dir, args.model_prefix+str(global_step)+'pt'))
 
 

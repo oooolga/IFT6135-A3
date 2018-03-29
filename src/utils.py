@@ -1,8 +1,12 @@
 import torch
 import torch.nn as nn
 import ipdb
+import os
 import tensorflow as tf
 import numpy as np
+from models import LSTMBaselineCell
+from models import NTMCell
+from torch import optim
 import scipy.misc
 try:
     from StringIO import StringIO  # Python 2.7
@@ -101,6 +105,54 @@ class Logger(object):
         self.writer.add_summary(summary, step)
         self.writer.flush()
 
+def get_model_optimizer(args, use_cuda):
+    # Load Model
+    if args.model == 'baseline':
+        cell = LSTMBaselineCell(
+            input_size=args.seq_dim+1, hidden_size=args.controller_size,
+            out_size=args.seq_dim
+        )
+    elif args.model == 'lstm_ntm':
+        cell = NTMCell(
+            inp_size=args.seq_dim+1,
+            out_size=args.seq_dim, M=args.M,
+            N=args.N, type='lstm',
+            controller_size=args.controller_size
+        )
+    elif args.model == 'mlp_ntm':
+        cell = NTMCell(
+            inp_size=args.seq_dim+1,
+            out_size=args.seq_dim, M=args.M,
+            N=args.N, type='lstm',
+            controller_size=args.controller_size
+        )
+    else:
+        raise NotImplementedError
+
+    model = CellWrapper(cell)
+    if use_cuda:
+        model = model.cuda()
+
+    optimizer = optim.RMSprop(
+        model.parameters(), momentum=args.momentum,
+        lr=args.lr, alpha=args.alpha
+    )
+
+    return model, optimizer
+
 def save_checkpoints(state, model_name):
     torch.save(state, model_name)
     print('Finished saving model: {}'.format(model_name))
+
+def load_checkpoint(model_name, use_cuda):
+    if os.path.isfile(model_name):
+        checkpoint = torch.load(model_name)
+        args = checkpoint['args']
+        model, optimizer = get_model_optimizer(args, use_cuda)
+        model.load_state_dict(checkpoint['state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        print('Finished loading model and optimizer from {}'.format(model_name))
+    else:
+        raise FileNotFoundError
+    return model, optimizer, args
+
