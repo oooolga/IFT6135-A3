@@ -58,18 +58,35 @@ class CellWrapper(nn.Module):
                 self.write_w = np.concatenate((self.write_w, write_w))
                 self.write_head = np.concatenate((self.write_head, write_head))
 
+                read_w = cell.reader.prev_w.cpu().data.numpy()
+                read_head = cell.r_t.cpu().data.numpy()
+                self.read_w = np.concatenate((self.read_w, read_w))
+                self.read_head = np.concatenate((self.read_head, read_head))
+
         # start outputting (no input)
         # read from memory and start copying
         out = []
         for t in range(inp.size(0)-1):
             out.append(cell.forward(None))
             if self.plot_weight_flag:
+                write_w = cell.writer.prev_w.cpu().data.numpy()
+                write_head = cell.writer.a_t.cpu().data.numpy()
+                self.write_w = np.concatenate((self.write_w, write_w))
+                self.write_head = np.concatenate((self.write_head, write_head))
+
                 read_w = cell.reader.prev_w.cpu().data.numpy()
                 read_head = cell.r_t.cpu().data.numpy()
                 self.read_w = np.concatenate((self.read_w, read_w))
                 self.read_head = np.concatenate((self.read_head, read_head))
 
         out = torch.stack(out)
+
+        if self.plot_weight_flag:
+            self.write_w = np.swapaxes(self.write_w,0,1)
+            self.read_w = np.swapaxes(self.read_w,0,1)
+            self.read_head = np.swapaxes(self.read_head,0,1)
+            self.write_head = np.swapaxes(self.write_head,0,1)
+
         return out
 
 class Logger(object):
@@ -182,10 +199,11 @@ def load_checkpoint(model_name, use_cuda):
         optimizer.load_state_dict(checkpoint['optimizer'])
         print('Finished loading model and optimizer from {}'.format(model_name))
     else:
+        print('File {} not found.'.format(model_name))
         raise FileNotFoundError
     return model, optimizer, args, checkpoint['global_step']
 
-def plot_visualize_head(model, im_path):
+def plot_visualize_head(model, head_path, attn_path):
     #rescale
     write_head, read_head = model.write_head, model.read_head
     max_write, max_read = np.max(write_head), np.max(read_head)
@@ -193,26 +211,29 @@ def plot_visualize_head(model, im_path):
     scale_write, scale_read = np.abs(max_write-min_write), np.abs(max_read-min_read)
     write_head = (write_head-min_write)/scale_write
 
-    heads = [write_head, read_head]
+    heads = {'write':write_head, 'read':read_head}
+    attentions = {'write':model.write_w, 'read':model.read_w}    
 
-    fig = plt.figure()
-    grid = AxesGrid(fig, 111,
-                nrows_ncols=(1, 2),
-                axes_pad=0.1,
-                share_all=True,
-                label_mode="L",
-                cbar_location="right",
-                cbar_mode="single",
-                )
+    f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
 
-    for val, ax in zip(heads, grid):
-        im = ax.imshow(val, vmin=0, vmax=1, interpolation='nearest')
+    im = ax1.imshow(heads['write'], vmin=0, vmax=1, interpolation='nearest')
+    ax1.set_ylabel('adds')
 
-    grid.cbar_axes[0].colorbar(im)
-
-    for cax in grid.cbar_axes:
-        cax.toggle_label(False)
-
-    plt.savefig(im_path)
+    im = ax2.imshow(heads['read'], vmin=0, vmax=1, interpolation='nearest')
+    ax2.set_ylabel('reads')
+    plt.set_title('the vectors add to/read from memory')
+    plt.savefig(head_path)
     plt.clf()
-    print('Image {} is saved.'.format(im_path))
+    print('Image {} is saved.'.format(head_path))
+
+    f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+
+    im = ax1.imshow(attentions['write'], vmin=0, vmax=1, interpolation='nearest', cmap='gray')
+    ax1.set_ylabel('location')
+    ax1.set_ylabel('time')
+
+    im = ax2.imshow(attentions['read'], vmin=0, vmax=1, interpolation='nearest', cmap='gray')
+    plt.set_title('read/write weighting')
+    plt.savefig(attn_path)
+    plt.clf()
+    print('Image {} is saved.'.format(attn_path))

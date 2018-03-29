@@ -13,11 +13,12 @@ import matplotlib.pyplot as plt
 use_cuda = torch.cuda.is_available()
 
 parser = argparse.ArgumentParser("Copy Task Test")
-parser.add_argument('--model-name', type=str, default='./saved_models/lstm_ntm_2500.pt',
+parser.add_argument('--model-name', type=str, default='./saved_models/lstmntm_32500.pt',
                     help='name of the model to load')
 parser.add_argument('--plot-dir', type=str, default='./plots',
                     help='directory for plots')
-parser.add_argument('--plot-name', type=str, default='head_visualization')
+parser.add_argument('--head-name', type=str, default='head_visualization')
+parser.add_argument('--attn-name', type=str, default='attn_visualization')
 org_args = parser.parse_args()
 
 model, _, args, _ = utils.load_checkpoint(org_args.model_name, use_cuda)
@@ -35,4 +36,5 @@ model.eval()
 inp, target = copy_task_gen.generate_batch(1, 10)
 pred = model(inp)
 
-utils.plot_visualize_head(model, os.path.join(org_args.plot_dir, org_args.plot_name+'.png'))
+utils.plot_visualize_head(model, os.path.join(org_args.plot_dir, org_args.head_name+'.png'),
+						  os.path.join(org_args.plot_dir, org_args.attn_name+'.png'))
