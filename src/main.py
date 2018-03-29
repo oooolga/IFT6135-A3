@@ -12,13 +12,13 @@ import numpy as np
 import os
 
 parser = argparse.ArgumentParser("NTM Copy Task")
-parser.add_argument("--model", default="baseline",
+parser.add_argument("--model", default="mlp_ntm",
                     help="[baseline] | [lstm_ntm] | [mlp_ntm] ")
-parser.add_argument("--batch-size", default=5)
+parser.add_argument("--batch-size", default=1)
 parser.add_argument("--train-steps", default=50000, type=int,
                     help="number of train steps")
-parser.add_argument("--print-freq", default=20)
-parser.add_argument("--save-freq", default=None, type=int)
+parser.add_argument("--print-freq", default=200)
+parser.add_argument("--save-freq", default=2500, type=int)
 parser.add_argument("--lr", default=1e-4, type=float)
 parser.add_argument("--momentum", default=0.9, type=float)
 parser.add_argument("--alpha", default=0.95, type=float)
@@ -32,10 +32,10 @@ parser.add_argument("--controller-size", default=100)
 parser.add_argument("--seq-dim", default=8, help="copy task input dim")
 parser.add_argument("--max-seq-len", default=20, help="copy task input length")
 
-parser.add_argument("--logdir", default="./logs", type=str, help="output log for plots")
+parser.add_argument("--logdir", default="./mlpntm_logs", type=str, help="output log for plots")
 parser.add_argument("--model-dir", default="./saved_models", type=str,
                     help="directory for saved models")
-parser.add_argument('--model-prefix', default='model_', type=str,
+parser.add_argument('--model-prefix', default='mlpntm_', type=str,
                     help='output model name\'s prefix')
 args = parser.parse_args()
 use_cuda = torch.cuda.is_available()
