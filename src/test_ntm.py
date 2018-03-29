@@ -15,9 +15,9 @@ use_cuda = torch.cuda.is_available()
 parser = argparse.ArgumentParser("Copy Task Test")
 parser.add_argument('--lstm-model', type=str, default='./saved_models/lstm_50000.pt',
                     help='name of the lstm model to load')
-parser.add_argument('--lstm-ntm-model', type=str, default='./saved_models/lstm_ntm_2500.pt',
+parser.add_argument('--lstm-ntm-model', type=str, default='./saved_models/lstmntm_47500.pt',
                     help='name of the lstm-ntm model to load')
-parser.add_argument('--mlp-ntm-model', type=str, default='./saved_models/mlp_ntm_500.pt',
+parser.add_argument('--mlp-ntm-model', type=str, default='./saved_models/mlpntm_17500.pt',
                     help='name of the mlp-ntm model to load')
 parser.add_argument('--plot-dir', type=str, default='./plots',
                     help='directory for plots')
@@ -61,7 +61,7 @@ plt.xlabel('T')
 plt.ylabel('avg loss')
 
 plt.title('average loss vs. T')
-plt.legend(loc=4)
+plt.legend(loc=2)
 plt.savefig(os.path.join(org_args.plot_dir, org_args.plot_name+'.png'))
 plt.clf()
 

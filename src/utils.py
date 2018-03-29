@@ -16,9 +16,8 @@ except ImportError:
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-import plotly.plotly as py
-import plotly.tools as tls
-from mpl_toolkits.axes_grid1 import AxesGrid
+from matplotlib import gridspec
+
 
 class CellWrapper(nn.Module):
     """
@@ -205,11 +204,7 @@ def load_checkpoint(model_name, use_cuda):
 
 def plot_visualize_head(model, inp, tgt, in_tgt_path, head_path, attn_path):
     #rescale
-    write_head, read_head = model.write_head, model.read_head
-    max_write, max_read = np.max(write_head), np.max(read_head)
-    min_write, min_read = np.min(write_head), np.min(read_head)
-    scale_write, scale_read = np.abs(max_write-min_write), np.abs(max_read-min_read)
-    write_head = (write_head-min_write)/scale_write
+    write_head, read_head = rescale_heads(model)
 
     heads = {'write':write_head, 'read':read_head}
     attentions = {'write':model.write_w, 'read':model.read_w} 
@@ -251,3 +246,83 @@ def plot_visualize_head(model, inp, tgt, in_tgt_path, head_path, attn_path):
     plt.savefig(attn_path)
     plt.clf()
     print('Image {} is saved.'.format(attn_path))
+
+
+def rescale_heads(model):
+    #rescale
+    write_head, read_head = model.write_head, model.read_head
+    max_write, max_read = np.max(write_head), np.max(read_head)
+    min_write, min_read = np.min(write_head), np.min(read_head)
+    scale_write, scale_read = np.abs(max_write-min_write), np.abs(max_read-min_read)
+    write_head = (write_head-min_write)/scale_write
+    return write_head, read_head
+
+def plot_visualize_2(model, inp, tgt, model2, inp2, tgt2, out_path):
+    write_head, read_head = rescale_heads(model)
+    write_head2, read_head2 = rescale_heads(model2)
+    heads = {'write':write_head, 'read':read_head}
+    attentions = {'write':model.write_w, 'read':model.read_w}
+    heads2 = {'write':write_head2, 'read':read_head2}
+    attentions2 = {'write':model2.write_w, 'read':model2.read_w} 
+
+    in_h, head_h, attn_h = inp.shape[0], heads['write'].shape[0], attentions['write'].shape[0]
+    l_w, r_w = inp.shape[1], inp2.shape[1]
+
+    fig = plt.figure() 
+    gs = gridspec.GridSpec(3, 4, height_ratios=[1, head_h/float(in_h), attn_h/float(in_h)],
+         width_ratios=[1,1,r_w/float(l_w),r_w/float(l_w)],
+         wspace=0.05, hspace=0.00)
+    ax1 = plt.subplot(gs[0,0])
+    ax1.imshow(inp,interpolation='nearest', cmap='gray')
+    ax1.set_xticklabels([])
+    ax1.set_yticklabels([])
+    ax2 = plt.subplot(gs[0,1], sharey=ax1)
+    ax2.imshow(tgt, interpolation='nearest', cmap='gray')
+    ax2.set_xticklabels([])
+    ax2.set_yticklabels([])
+    ax1b = plt.subplot(gs[0,2], sharey=ax2)
+    ax1b.imshow(inp2,interpolation='nearest', cmap='gray')
+    ax1b.set_xticklabels([])
+    ax1b.set_yticklabels([])
+    ax2b = plt.subplot(gs[0,3], sharey=ax1b)
+    ax2b.imshow(tgt2, interpolation='nearest', cmap='gray')
+    ax2b.set_xticklabels([])
+    ax2b.set_yticklabels([])
+
+    ax3 = plt.subplot(gs[1,0], sharex=ax1)
+    ax3.imshow(heads['write'],interpolation='nearest')
+    ax3.set_xticklabels([])
+    ax3.set_yticklabels([])
+    ax4 = plt.subplot(gs[1,1], sharex=ax2, sharey=ax3)
+    ax4.imshow(heads['read'],interpolation='nearest')
+    ax4.set_xticklabels([])
+    ax4.set_yticklabels([])
+    ax3b = plt.subplot(gs[1,2], sharex=ax1b, sharey=ax4)
+    ax3b.imshow(heads2['write'],interpolation='nearest')
+    ax3b.set_xticklabels([])
+    ax3b.set_yticklabels([])
+    ax4b = plt.subplot(gs[1,3], sharex=ax2b, sharey=ax3b)
+    ax4b.imshow(heads2['read'],interpolation='nearest')
+    ax4b.set_xticklabels([])
+    ax4b.set_yticklabels([])
+
+    ax5 = plt.subplot(gs[2,0], sharex=ax3)
+    ax5.imshow(attentions['write'], interpolation='nearest', cmap='gray')
+    ax5.set_xticklabels([])
+    ax5.set_yticklabels([])
+    ax6 = plt.subplot(gs[2,1], sharex=ax4, sharey=ax5)
+    ax6.imshow(attentions['read'], interpolation='nearest', cmap='gray')
+    ax6.set_xticklabels([])
+    ax6.set_yticklabels([])
+    ax5b = plt.subplot(gs[2,2], sharex=ax3b, sharey=ax6)
+    ax5b.imshow(attentions2['write'], interpolation='nearest', cmap='gray')
+    ax5b.set_xticklabels([])
+    ax5b.set_yticklabels([])
+    ax6b = plt.subplot(gs[2,3], sharex=ax4b, sharey=ax5b)
+    ax6b.imshow(attentions2['read'], interpolation='nearest', cmap='gray')
+    ax6b.set_xticklabels([])
+    ax6b.set_yticklabels([])
+
+    plt.savefig(out_path)
+    plt.clf()
+    print('Image {} is saved.'.format(out_path))
