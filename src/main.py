@@ -43,6 +43,8 @@ use_cuda = torch.cuda.is_available()
 if os.path.isdir(args.logdir):
     print("{} exists!".format(args.logdir))
     exit(0)
+if not os.path.exists(args.model_dir):
+    os.makedirs(args.model_dir)
 ##########################END OF ARGS###############################
 
 # Copy Task
@@ -50,43 +52,11 @@ copy_task_gen = CopyTaskGenerator(
     max_seq_len=args.max_seq_len, seq_dim=args.seq_dim
 )
 
-# Load Model
-if args.model == 'baseline':
-    cell = LSTMBaselineCell(
-        input_size=args.seq_dim+1, hidden_size=args.controller_size,
-        out_size=args.seq_dim
-    )
-elif args.model == 'lstm_ntm':
-    cell = NTMCell(
-        inp_size=args.seq_dim+1,
-        out_size=args.seq_dim, M=args.M,
-        N=args.N, type='lstm',
-        controller_size=args.controller_size
-    )
-elif args.model == 'mlp_ntm':
-    cell = NTMCell(
-        inp_size=args.seq_dim+1,
-        out_size=args.seq_dim, M=args.M,
-        N=args.N, type='lstm',
-        controller_size=args.controller_size
-    )
-else:
-    raise NotImplementedError
+model, optimizer = utils.get_model_optimizer(args, use_cuda)
 
-if not os.path.exists(args.model_dir):
-    os.makedirs(args.model_dir)
-
-model = utils.CellWrapper(cell)
-if use_cuda:
-    model = model.cuda()
 print("{} has {} parameters".format(
     args.model, sum([np.prod(p.size()) for p in model.parameters() ])
 ))
-
-optimizer = optim.RMSprop(
-    model.parameters(), momentum=args.momentum,
-    lr=args.lr, alpha=args.alpha
-)
 
 criterion = torch.nn.BCELoss()
 global_step = 0
