@@ -169,7 +169,7 @@ def get_model_optimizer(args, use_cuda):
         cell = NTMCell(
             inp_size=args.seq_dim+1,
             out_size=args.seq_dim, M=args.M,
-            N=args.N, type='lstm',
+            N=args.N, type='mlp',
             controller_size=args.controller_size
         )
     else:
