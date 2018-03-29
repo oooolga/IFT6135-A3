@@ -9,15 +9,16 @@ from torch import optim
 import argparse
 import utils
 import numpy as np
+import math
 
 
 parser = argparse.ArgumentParser("NTM Copy Task")
 parser.add_argument("--model", default="baseline",
                     help="[baseline] | [lstm_ntm] | [mlp_ntm] ")
 parser.add_argument("--batch-size", default=32)
-parser.add_argument("--train-steps", default=50000,
-                    help="number of steps to train")
-parser.add_argument("--print-freq", default=50)
+parser.add_argument("--num-train", default=200,
+                    help="number of train examples")
+parser.add_argument("--print-freq", default=1)
 parser.add_argument("--lr", default=1e-4, type=float)
 parser.add_argument("--momentum", default=0.9, type=float)
 parser.add_argument("--alpha", default=0.95, type=float)
@@ -82,7 +83,8 @@ loss_avg = 0
 writer = utils.Logger(args.logdir)
 
 model.train()
-while global_step < args.train_steps:
+total_steps = math.ceil(args.num_train / args.batch_size)
+while global_step < total_steps:
     inp, target = copy_task_gen.generate_batch(batch_size=args.batch_size)
     pred = model(inp)
 
@@ -99,7 +101,7 @@ while global_step < args.train_steps:
 
     if global_step % args.print_freq == 0:
         print("at step {} loss {}".format(global_step, loss_avg / args.print_freq))
-        writer.scalar_summary("train_bce", loss_avg / print_freq, global_step)
+        writer.scalar_summary("train_bce", loss_avg / args.print_freq, global_step)
         loss_avg = 0
 
 
