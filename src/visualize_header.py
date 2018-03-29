@@ -13,14 +13,14 @@ import matplotlib.pyplot as plt
 use_cuda = torch.cuda.is_available()
 
 parser = argparse.ArgumentParser("Copy Task Test")
-parser.add_argument('--model-name', type=str, default='./saved_models/lstmntm_47500.pt',
+parser.add_argument('--model-name', type=str, default='./saved_models/mlpntm_17500.pt',
                     help='name of the model to load')
 parser.add_argument('--plot-dir', type=str, default='./plots',
                     help='directory for plots')
-parser.add_argument('--in-out-name', type=str, default='in_out_visualization')
-parser.add_argument('--head-name', type=str, default='head_visualization')
-parser.add_argument('--attn-name', type=str, default='attn_visualization')
-parser.add_argument('--plot-name', type=str, default='mlp_ntm_visualization')
+parser.add_argument('--in-out-name', type=str, default='mlpntm_inout')
+parser.add_argument('--head-name', type=str, default='mlpntm_head')
+parser.add_argument('--attn-name', type=str, default='mlpntm_attn')
+parser.add_argument('--plot-name', type=str, default='mlpntm_visualization')
 org_args = parser.parse_args()
 
 model, _, args, _ = utils.load_checkpoint(org_args.model_name, use_cuda)

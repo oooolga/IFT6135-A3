@@ -217,7 +217,7 @@ def plot_visualize_head(model, inp, tgt, in_tgt_path, head_path, attn_path):
     im = ax2.imshow(tgt, vmin=0, vmax=1, interpolation='nearest', cmap='gray')
     ax2.set_xlabel('outputs')
     plt.title('inputs and outputs')
-    plt.savefig(in_tgt_path)
+    plt.savefig(in_tgt_path, transparent = True, bbox_inches = 'tight', pad_inches = 0)
     plt.clf()
     print('Image {} is saved.'.format(in_tgt_path))
 
@@ -230,7 +230,7 @@ def plot_visualize_head(model, inp, tgt, in_tgt_path, head_path, attn_path):
     im = ax2.imshow(heads['read'], vmin=0, vmax=1, interpolation='nearest')
     ax2.set_ylabel('reads')
     plt.title('the vectors add to/read from memory')
-    plt.savefig(head_path)
+    plt.savefig(head_path, transparent = True, bbox_inches = 'tight', pad_inches = 0)
     plt.clf()
     print('Image {} is saved.'.format(head_path))
 
@@ -243,7 +243,7 @@ def plot_visualize_head(model, inp, tgt, in_tgt_path, head_path, attn_path):
     im = ax2.imshow(attentions['read'], vmin=0, vmax=1, interpolation='nearest', cmap='gray')
     ax2.set_xlabel('time')
     plt.title('read/write weighting')
-    plt.savefig(attn_path)
+    plt.savefig(attn_path, transparent = True, bbox_inches = 'tight', pad_inches = 0)
     plt.clf()
     print('Image {} is saved.'.format(attn_path))
 
@@ -251,10 +251,11 @@ def plot_visualize_head(model, inp, tgt, in_tgt_path, head_path, attn_path):
 def rescale_heads(model):
     #rescale
     write_head, read_head = model.write_head, model.read_head
-    max_write, max_read = np.max(write_head), np.max(read_head)
-    min_write, min_read = np.min(write_head), np.min(read_head)
-    scale_write, scale_read = np.abs(max_write-min_write), np.abs(max_read-min_read)
-    write_head = (write_head-min_write)/scale_write
+    max_head = max(np.max(write_head), np.max(read_head))
+    min_head = min(np.min(write_head), np.min(read_head))
+    scale_head = np.abs(max_head-min_head)
+    write_head = (write_head-min_head)/scale_head
+    read_head = (read_head-min_head)/scale_head
     return write_head, read_head
 
 def plot_visualize_2(model, inp, tgt, model2, inp2, tgt2, out_path):
