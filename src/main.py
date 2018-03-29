@@ -99,7 +99,7 @@ while global_step < args.train_steps:
 
     if global_step % args.print_freq == 0:
         print("at step {} loss {}".format(global_step, loss_avg / args.print_freq))
-        writer.scalar_summary("train_bce", loss_avg, global_step)
+        writer.scalar_summary("train_bce", loss_avg / print_freq, global_step)
         loss_avg = 0
 
 
