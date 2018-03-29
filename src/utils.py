@@ -145,7 +145,7 @@ def save_checkpoints(state, model_name):
     print('Finished saving model: {}'.format(model_name))
 
 def load_checkpoint(model_name, use_cuda):
-    if os.path.isfile(model_name):
+    if model_name and os.path.isfile(model_name):
         checkpoint = torch.load(model_name)
         args = checkpoint['args']
         model, optimizer = get_model_optimizer(args, use_cuda)
@@ -154,5 +154,5 @@ def load_checkpoint(model_name, use_cuda):
         print('Finished loading model and optimizer from {}'.format(model_name))
     else:
         raise FileNotFoundError
-    return model, optimizer, args
+    return model, optimizer, args, checkpoint['global_step']
 

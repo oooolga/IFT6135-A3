@@ -99,6 +99,6 @@ while global_step < args.train_steps:
             'args': args,
             'state_dict': model.state_dict(),
             'optimizer': optimizer.state_dict()
-            }, os.path.join(args.model_dir, args.model_prefix+str(global_step)+'pt'))
+            }, os.path.join(args.model_dir, args.model_prefix+str(global_step)+'.pt'))
 
 

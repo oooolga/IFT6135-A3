@@ -10,22 +10,51 @@ import argparse, os
 import utils
 import numpy as np
 import os
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
 
 use_cuda = torch.cuda.is_available()
 
 parser = argparse.ArgumentParser("Copy Task Test")
 parser.add_argument('--model-name', type=str,
                     help='name of the model to load')
-args = parser.parse_args()
+parser.add_argument('--plot-dir', type=str, default='./plots',
+                    help='directory for plots')
+parser.add_argument('--plot-name', type=str, default='avgloss_vs_t')
+org_args = parser.parse_args()
 
-model, optimizer, args = utils.load_checkpoint(args.model_name, use_cuda)
+model, _, args, _ = utils.load_checkpoint(org_args.model_name, use_cuda)
+
+if not os.path.exists(org_args.plot_dir):
+    os.makedirs(org_args.plot_dir)
 
 # Copy Task
 copy_task_gen = CopyTaskGenerator(
-    max_seq_len=args.max_seq_len, seq_dim=args.seq_dim
+    max_seq_len=100, seq_dim=args.seq_dim
 )
 
+losses = []
+
 criterion = torch.nn.BCELoss()
+model.eval()
+
+for T in range(10, 101, 10):
+	inp, target = copy_task_gen.generate_batch(20, T)
+	pred = model(inp)
+	loss = criterion(pred, target)
+	losses.append(loss.cpu().data[0])
+
+plt.plot(list(range(10, 101, 10)), losses, 'ro')
+plt.xlabel('T')
+plt.ylabel('avg loss')
+
+plt.title('average loss vs. T')
+plt.savefig(os.path.join(org_args.plot_dir, org_args.plot_name+'.png'))
+plt.clf()
+
+
+
 
 ################
 '''
